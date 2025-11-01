@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+combined.log
+error.log
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Server stack data
+server-stack/nginx/logs/*
+server-stack/mysql/data/*
+server-stack/php/logs/*
+
+# Keep directory structure
+!server-stack/nginx/logs/.gitkeep
+!server-stack/mysql/data/.gitkeep
+!server-stack/php/logs/.gitkeep

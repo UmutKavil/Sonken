@@ -1,0 +1,33 @@
+{
+  "name": "sonken",
+  "version": "0.1.0",
+  "description": "Next-generation local development server with integrated APM dashboard",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": [
+    "development-server",
+    "apm",
+    "monitoring",
+    "xampp-alternative",
+    "local-server",
+    "performance-monitoring"
+  ],
+  "author": "UmutKavil",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UmutKavil/Sonken.git"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
