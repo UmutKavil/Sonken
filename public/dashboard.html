@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonken Dashboard - Sistem Yönetimi</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-rocket"></i>
+            <h2>Sonken</h2>
+        </div>
+        <nav class="nav-menu">
+            <a href="#overview" class="nav-item active" data-section="overview">
+                <i class="fas fa-home"></i>
+                <span>Genel Bakış</span>
+            </a>
+            <a href="#sites" class="nav-item" data-section="sites">
+                <i class="fas fa-globe"></i>
+                <span>Siteler</span>
+            </a>
+            <a href="#databases" class="nav-item" data-section="databases">
+                <i class="fas fa-database"></i>
+                <span>Veritabanları</span>
+            </a>
+            <a href="#performance" class="nav-item" data-section="performance">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Performans</span>
+            </a>
+            <a href="#logs" class="nav-item" data-section="logs">
+                <i class="fas fa-file-alt"></i>
+                <span>Loglar</span>
+            </a>
+            <a href="#settings" class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Admin</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 id="page-title">Genel Bakış</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Ara...">
+                </div>
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </button>
+                <button class="refresh-btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content">
+            <!-- Overview Section -->
+            <section id="overview-section" class="content-section active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="active-sites">0</h3>
+                            <p>Aktif Siteler</p>
+                        </div>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 12%
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-bandwidth">0 MB</h3>
+                            <p>Toplam Trafik</p>
+                        </div>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 8%
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="cpu-usage">0%</h3>
+                            <p>CPU Kullanımı</p>
+                        </div>
+                        <div class="stat-trend down">
+                            <i class="fas fa-arrow-down"></i> 3%
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-memory"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="memory-usage">0%</h3>
+                            <p>RAM Kullanımı</p>
+                        </div>
+                        <div class="stat-trend up">
+                            <i class="fas fa-arrow-up"></i> 5%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Trafik İstatistikleri</h3>
+                            <select id="traffic-period">
+                                <option value="day">Bugün</option>
+                                <option value="week" selected>Bu Hafta</option>
+                                <option value="month">Bu Ay</option>
+                            </select>
+                        </div>
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Sistem Kaynakları</h3>
+                            <div class="chart-legend">
+                                <span class="legend-item"><span class="dot cpu"></span>CPU</span>
+                                <span class="legend-item"><span class="dot ram"></span>RAM</span>
+                                <span class="legend-item"><span class="dot disk"></span>Disk</span>
+                            </div>
+                        </div>
+                        <canvas id="resourcesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Active Sites Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Aktif Siteler</h3>
+                        <button class="btn btn-primary" onclick="addNewSite()">
+                            <i class="fas fa-plus"></i> Yeni Site
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="sites-table">
+                            <thead>
+                                <tr>
+                                    <th>Site Adı</th>
+                                    <th>URL</th>
+                                    <th>Durum</th>
+                                    <th>Trafik</th>
+                                    <th>İstekler</th>
+                                    <th>Ortalama Yanıt</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sites-tbody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sites Section -->
+            <section id="sites-section" class="content-section">
+                <div class="sites-grid" id="sites-grid">
+                    <!-- Dynamic site cards -->
+                </div>
+            </section>
+
+            <!-- Databases Section -->
+            <section id="databases-section" class="content-section">
+                <div class="db-container">
+                    <div class="db-card">
+                        <div class="db-header">
+                            <i class="fas fa-database mysql"></i>
+                            <h3>MySQL</h3>
+                            <span class="status-badge online">Çevrimiçi</span>
+                        </div>
+                        <div class="db-stats">
+                            <div class="db-stat">
+                                <span class="label">Veritabanları:</span>
+                                <span class="value" id="mysql-db-count">0</span>
+                            </div>
+                            <div class="db-stat">
+                                <span class="label">Bağlantılar:</span>
+                                <span class="value" id="mysql-connections">0</span>
+                            </div>
+                            <div class="db-stat">
+                                <span class="label">Sorgu/sn:</span>
+                                <span class="value" id="mysql-queries">0</span>
+                            </div>
+                        </div>
+                        <div class="db-actions">
+                            <button class="btn btn-secondary" onclick="openPhpMyAdmin()">
+                                <i class="fas fa-external-link-alt"></i> PhpMyAdmin
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewDatabases('mysql')">
+                                <i class="fas fa-eye"></i> Görüntüle
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="db-card">
+                        <div class="db-header">
+                            <i class="fas fa-leaf mongodb"></i>
+                            <h3>MongoDB</h3>
+                            <span class="status-badge online">Çevrimiçi</span>
+                        </div>
+                        <div class="db-stats">
+                            <div class="db-stat">
+                                <span class="label">Koleksiyonlar:</span>
+                                <span class="value" id="mongo-collections">0</span>
+                            </div>
+                            <div class="db-stat">
+                                <span class="label">Dökümanlar:</span>
+                                <span class="value" id="mongo-documents">0</span>
+                            </div>
+                            <div class="db-stat">
+                                <span class="label">Boyut:</span>
+                                <span class="value" id="mongo-size">0 MB</span>
+                            </div>
+                        </div>
+                        <div class="db-actions">
+                            <button class="btn btn-secondary" onclick="openMongoExpress()">
+                                <i class="fas fa-external-link-alt"></i> Mongo Express
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewDatabases('mongodb')">
+                                <i class="fas fa-eye"></i> Görüntüle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Section -->
+            <section id="performance-section" class="content-section">
+                <div class="performance-grid">
+                    <div class="perf-card">
+                        <h3>CPU Kullanımı</h3>
+                        <div class="gauge-container">
+                            <canvas id="cpuGauge"></canvas>
+                        </div>
+                        <div class="perf-details">
+                            <p>Çekirdek Sayısı: <span id="cpu-cores">0</span></p>
+                            <p>Yük Ortalaması: <span id="cpu-load">0.00</span></p>
+                        </div>
+                    </div>
+
+                    <div class="perf-card">
+                        <h3>Bellek Kullanımı</h3>
+                        <div class="gauge-container">
+                            <canvas id="memoryGauge"></canvas>
+                        </div>
+                        <div class="perf-details">
+                            <p>Toplam: <span id="memory-total">0 GB</span></p>
+                            <p>Kullanılabilir: <span id="memory-free">0 GB</span></p>
+                        </div>
+                    </div>
+
+                    <div class="perf-card">
+                        <h3>Disk Kullanımı</h3>
+                        <div class="progress-bars">
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>C:</span>
+                                    <span id="disk-c-percent">0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="disk-c-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="perf-card full-width">
+                        <h3>Ağ Trafiği (Son 24 Saat)</h3>
+                        <canvas id="networkChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logs Section -->
+            <section id="logs-section" class="content-section">
+                <div class="logs-container">
+                    <div class="logs-controls">
+                        <select id="log-level">
+                            <option value="all">Tüm Seviyeler</option>
+                            <option value="info">Info</option>
+                            <option value="warn">Warning</option>
+                            <option value="error">Error</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="clearLogs()">
+                            <i class="fas fa-trash"></i> Temizle
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportLogs()">
+                            <i class="fas fa-download"></i> Dışa Aktar
+                        </button>
+                    </div>
+                    <div class="logs-list" id="logs-list">
+                        <!-- Dynamic logs -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="content-section">
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3>Genel Ayarlar</h3>
+                        <form id="general-settings">
+                            <div class="form-group">
+                                <label>Uygulama Adı</label>
+                                <input type="text" value="Sonken" id="app-name">
+                            </div>
+                            <div class="form-group">
+                                <label>Port</label>
+                                <input type="number" value="3000" id="app-port">
+                            </div>
+                            <div class="form-group">
+                                <label>Maksimum Upload Boyutu (MB)</label>
+                                <input type="number" value="50" id="max-upload">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </form>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Bildirim Ayarları</h3>
+                        <div class="toggle-group">
+                            <div class="toggle-item">
+                                <label>Email Bildirimleri</label>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-item">
+                                <label>Performans Uyarıları</label>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-item">
+                                <label>Günlük Raporlar</label>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
