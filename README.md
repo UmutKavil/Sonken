@@ -10,19 +10,22 @@
 
 - 🌐 **Modern Web Sunucusu**: Express.js tabanlı hızlı ve güvenilir web sunucusu
 - 🗄️ **Çoklu Veritabanı Desteği**: MySQL ve MongoDB entegrasyonu
-- 🎨 **Kullanıcı Dostu Arayüz**: Modern ve responsive yönetim paneli
+- 🎨 **Web Tabanlı Yönetim**: Tarayıcıdan erişilebilen modern dashboard
+- 📊 **Gerçek Zamanlı İzleme**: Site trafiği, CPU, RAM, disk kullanımı
+- 📈 **Trafik Analizi**: Her sitenin internet kullanımını detaylı izleme
 - 🐳 **Docker Desteği**: Kolay kurulum ve dağıtım
 - 🔒 **Güvenlik**: Modern güvenlik önlemleri ve best practices
-- 📊 **Gerçek Zamanlı İzleme**: Sistem durumu ve performans metrikleri
-- 🛠️ **Kolay Yapılandırma**: .env dosyası ile basit ayarlar
-- 📝 **Detaylı Loglama**: Sistem olaylarını takip edin
-- 🔄 **API Endpoints**: RESTful API desteği
+- ️ **Kolay Yapılandırma**: .env dosyası ile basit ayarlar
+- 📝 **Canlı Loglar**: Gerçek zamanlı sistem olayları
+- 🔄 **RESTful API**: Kapsamlı API endpoint'leri
 - ⚡ **Yüksek Performans**: Optimize edilmiş kod yapısı
+- 📱 **Responsive Tasarım**: Tüm cihazlarda sorunsuz çalışır
 
 ## 📋 Gereksinimler
 
-- Node.js 18.0.0 veya üzeri
-- npm 9.0.0 veya üzeri
+- **Node.js** 18.0.0 veya üzeri
+- **npm** 9.0.0 veya üzeri
+- **Tarayıcı** (Chrome, Firefox, Edge, Safari)
 - Docker ve Docker Compose (opsiyonel)
 - MySQL 8.0 (Docker kullanmıyorsanız)
 - MongoDB 7.0 (Docker kullanmıyorsanız)
@@ -50,7 +53,7 @@ copy .env.example .env
 
 `.env` dosyasını düzenleyerek kendi ayarlarınızı yapın.
 
-### 4. Uygulamayı Başlatın
+### 4. Sunucuyu Başlatın
 
 #### Normal Başlatma:
 ```bash
@@ -67,7 +70,9 @@ npm run dev
 npm run docker:up
 ```
 
-Uygulama varsayılan olarak `http://localhost:3000` adresinde çalışacaktır.
+Sunucu başlatıldıktan sonra:
+- **Ana Sayfa**: `http://localhost:3000`
+- **Dashboard**: `http://localhost:3000/dashboard`
 
 ## 🐳 Docker Kullanımı
 
@@ -121,6 +126,25 @@ Sonken/
 └── README.md           # Bu dosya
 ```
 
+## 🎨 Dashboard
+
+Sonken modern bir web arayüzü ile gelir. Dashboard'a erişmek için:
+
+```
+http://localhost:3000/dashboard
+```
+
+### Dashboard Özellikleri
+
+- 📊 **Gerçek Zamanlı İzleme**: CPU, RAM, Disk kullanımı
+- 🌐 **Site Yönetimi**: Tüm sitelerinizi tek yerden yönetin
+- 📈 **Trafik İstatistikleri**: Her sitenin internet kullanımını görün
+- 🗄️ **Veritabanı Yönetimi**: MySQL ve MongoDB kontrolü
+- 📝 **Canlı Loglar**: Sistem olaylarını gerçek zamanlı takip edin
+- ⚡ **Performans Metrikleri**: Detaylı sistem performans analizi
+
+Detaylı kullanım için: [Dashboard Kullanım Kılavuzu](DASHBOARD.md)
+
 ## 🔌 API Endpoints
 
 ### Sistem Bilgisi
@@ -170,6 +194,38 @@ MySQL ve MongoDB bağlantılarını test eder.
 GET /api/server/info
 ```
 Sunucu donanım ve sistem bilgilerini döndürür.
+
+### Metrik Endpoints
+
+#### Site Metrikleri
+```
+GET /api/metrics/sites/metrics
+```
+Tüm sitelerin trafik ve performans metriklerini döndürür.
+
+#### Gerçek Zamanlı Sistem Metrikleri
+```
+GET /api/metrics/system/realtime
+```
+CPU, RAM ve sistem kaynaklarının anlık durumunu döndürür.
+
+#### Bandwidth Kullanımı
+```
+GET /api/metrics/bandwidth
+```
+Toplam internet kullanımını (gelen/giden) döndürür.
+
+#### Trafik Geçmişi
+```
+GET /api/metrics/traffic/history?period=day
+```
+Belirtilen süre için trafik geçmişini döndürür.
+
+#### Performans Metrikleri
+```
+GET /api/metrics/performance
+```
+Detaylı performans metriklerini döndürür.
 
 ## ⚙️ Yapılandırma
 

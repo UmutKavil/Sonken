@@ -51,6 +51,7 @@ docker-data/
 # Uploads
 uploads/
 temp/
+sites/
 
 # Coverage
 coverage/

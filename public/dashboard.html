@@ -141,7 +141,9 @@
                                 <option value="month">Bu Ay</option>
                             </select>
                         </div>
-                        <canvas id="trafficChart"></canvas>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
                     </div>
 
                     <div class="chart-card">
@@ -153,7 +155,9 @@
                                 <span class="legend-item"><span class="dot disk"></span>Disk</span>
                             </div>
                         </div>
-                        <canvas id="resourcesChart"></canvas>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="resourcesChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -188,8 +192,47 @@
 
             <!-- Sites Section -->
             <section id="sites-section" class="content-section">
-                <div class="sites-grid" id="sites-grid">
-                    <!-- Dynamic site cards -->
+                <div class="upload-section">
+                    <div class="upload-card">
+                        <div class="upload-header">
+                            <h3><i class="fas fa-upload"></i> Yeni Site Yükle</h3>
+                            <p>PHP, HTML veya ZIP dosyanızı yükleyin ve local ağda paylaşın</p>
+                        </div>
+                        <form id="site-upload-form" enctype="multipart/form-data">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Site Adı</label>
+                                    <input type="text" id="site-name" name="siteName" placeholder="my-website" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Port (Opsiyonel)</label>
+                                    <input type="number" id="site-port" name="port" placeholder="8000" min="3001" max="9999">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Site Dosyaları</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="site-files" name="siteFiles" multiple accept=".php,.html,.htm,.css,.js,.zip" required>
+                                    <label for="site-files" class="file-upload-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Dosyaları sürükleyin veya seçin</span>
+                                        <small>PHP, HTML, CSS, JS veya ZIP dosyaları</small>
+                                    </label>
+                                    <div id="file-list" class="file-list"></div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-rocket"></i> Site Yükle ve Başlat
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="sites-list">
+                    <h3><i class="fas fa-server"></i> Aktif Siteler</h3>
+                    <div class="sites-grid" id="sites-grid">
+                        <!-- Dynamic site cards -->
+                    </div>
                 </div>
             </section>
 
@@ -300,7 +343,9 @@
 
                     <div class="perf-card full-width">
                         <h3>Ağ Trafiği (Son 24 Saat)</h3>
-                        <canvas id="networkChart"></canvas>
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="networkChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>

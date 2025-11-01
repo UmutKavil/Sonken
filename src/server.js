@@ -15,7 +15,6 @@ const apiRoutes = require('./routes/api');
 const databaseRoutes = require('./routes/database');
 const serverRoutes = require('./routes/server');
 const metricsRoutes = require('./routes/metrics');
-const sitesRoutes = require('./routes/sites');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -44,10 +43,6 @@ app.use('/api', apiRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/server', serverRoutes);
 app.use('/api/metrics', metricsRoutes);
-app.use('/api/sites', sitesRoutes);
-
-// Serve uploaded sites
-app.use('/sites', express.static(path.join(__dirname, '../sites')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

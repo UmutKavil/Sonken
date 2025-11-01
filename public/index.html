@@ -208,7 +208,7 @@
                 </div>
                 <div class="feature-item">
                     <h4>📊 Yönetim Paneli</h4>
-                    <p>Kullanıcı dostu arayüz</p>
+                    <p>Gerçek zamanlı izleme ve yönetim</p>
                 </div>
                 <div class="feature-item">
                     <h4>🐳 Docker Desteği</h4>
@@ -222,7 +222,10 @@
         </div>
 
         <div class="quick-links">
-            <a href="/api/info" class="btn btn-primary">API Bilgisi</a>
+            <a href="/dashboard" class="btn btn-primary">
+                <i class="fas fa-tachometer-alt"></i> Dashboard'a Git
+            </a>
+            <a href="/api/info" class="btn btn-secondary">API Bilgisi</a>
             <a href="/api/status" class="btn btn-secondary">Sistem Durumu</a>
             <a href="/health" class="btn btn-secondary">Sağlık Kontrolü</a>
         </div>
@@ -242,6 +245,14 @@
             .catch(error => {
                 console.error('Error fetching system info:', error);
             });
+        
+        // Add Font Awesome for icons
+        if (!document.querySelector('link[href*="font-awesome"]')) {
+            const faLink = document.createElement('link');
+            faLink.rel = 'stylesheet';
+            faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(faLink);
+        }
     </script>
 </body>
 </html>
