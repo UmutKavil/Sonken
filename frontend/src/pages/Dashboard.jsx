@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Play, Square, Trash2, ExternalLink } from 'lucide-react';
-import { projectsAPI } from '../services/api';
+import { Plus, Play, Square, Trash2, ExternalLink, Globe, FolderOpen } from 'lucide-react';
+import { projectsAPI, serverAPI, systemAPI } from '../services/api';
 import { useWebSocket } from '../services/websocket';
 import Card from '../components/Card';
 
@@ -44,6 +44,29 @@ const Dashboard = () => {
       await loadProjects();
     } catch (error) {
       console.error('Error deleting project:', error);
+    }
+  };
+
+  const openInBrowser = async (project) => {
+    try {
+      // Server durumunu kontrol et
+      const statusRes = await serverAPI.getStatus(project.id);
+      
+      if (statusRes.data.running) {
+        // Server çalışıyorsa direkt aç
+        window.open(statusRes.data.url, '_blank');
+      } else {
+        // Server çalışmıyorsa başlat
+        const startRes = await serverAPI.start(project.id);
+        if (startRes.data.success) {
+          setTimeout(() => {
+            window.open(startRes.data.url, '_blank');
+          }, 1000); // Server başlaması için 1 saniye bekle
+        }
+      }
+    } catch (error) {
+      console.error('Error opening project:', error);
+      alert('Server başlatılamadı. PHP yüklü olduğundan emin olun.');
     }
   };
 
@@ -131,31 +154,19 @@ const Dashboard = () => {
 
                 <div className="flex space-x-2 pt-2 border-t border-gray-200">
                   <button
-                    onClick={() => toggleProject(project.id)}
-                    className={`flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md ${
-                      project.status === 'running'
-                        ? 'bg-red-50 text-red-700 hover:bg-red-100'
-                        : 'bg-green-50 text-green-700 hover:bg-green-100'
-                    }`}
+                    onClick={() => openInBrowser(project)}
+                    className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100"
+                    title="Tarayıcıda Aç"
                   >
-                    {project.status === 'running' ? (
-                      <>
-                        <Square className="h-4 w-4 mr-1" />
-                        Stop
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-1" />
-                        Start
-                      </>
-                    )}
+                    <Globe className="h-4 w-4 mr-1" />
+                    Aç
                   </button>
                   <button
                     onClick={() => navigate(`/project/${project.id}`)}
                     className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium bg-primary-50 text-primary-700 rounded-md hover:bg-primary-100"
                   >
                     <ExternalLink className="h-4 w-4 mr-1" />
-                    Details
+                    Detay
                   </button>
                   <button
                     onClick={() => deleteProject(project.id)}
@@ -194,6 +205,8 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
     database_user: 'root',
     database_password: '',
   });
+  const [selectingFolder, setSelectingFolder] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   // Otomatik domain oluştur
   const generateDomain = (name) => {
@@ -214,8 +227,26 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
     });
   };
 
+  const handleSelectFolder = async () => {
+    setSelectingFolder(true);
+    try {
+      const response = await systemAPI.selectFolder();
+      if (response.data.success && response.data.path) {
+        setFormData({ ...formData, path: response.data.path });
+      } else if (response.data.error) {
+        alert('Klasör seçilemedi: ' + response.data.error);
+      }
+    } catch (error) {
+      console.error('Error selecting folder:', error);
+      alert('Klasör seçici açılamadı. Lütfen yolu manuel olarak girin.');
+    } finally {
+      setSelectingFolder(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setCreating(true);
     try {
       // Domain boşsa otomatik oluştur
       const submitData = {
@@ -225,11 +256,18 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
       const response = await projectsAPI.create(submitData);
       const createdProject = response.data.data;
       
+      // Kaynak yolu localStorage'a kaydet (yenileme için)
+      localStorage.setItem(`project_source_${createdProject.id}`, formData.path);
+      
+      alert(response.data.message || 'Proje başarıyla oluşturuldu ve dosyalar kopyalandı!');
+      
       // Proje oluşturulduktan sonra detay sayfasına yönlendir
       window.location.href = `/project/${createdProject.id}`;
     } catch (error) {
       console.error('Error creating project:', error);
-      alert('Failed to create project');
+      alert(error.response?.data?.error || 'Proje oluşturulamadı');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -272,16 +310,30 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project Path
+              Proje Konumu
             </label>
-            <input
-              type="text"
-              required
-              value={formData.path}
-              onChange={(e) => setFormData({ ...formData, path: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="C:\projects\myproject"
-            />
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                required
+                value={formData.path}
+                onChange={(e) => setFormData({ ...formData, path: e.target.value })}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="C:\projects\myproject"
+              />
+              <button
+                type="button"
+                onClick={handleSelectFolder}
+                disabled={selectingFolder}
+                className="px-4 py-2 bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center whitespace-nowrap"
+              >
+                <FolderOpen className="h-4 w-4 mr-2" />
+                {selectingFolder ? 'Seçiliyor...' : 'Gözat'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Gözat düğmesi ile bilgisayarınızdaki klasörü seçin veya yolu manuel yazın
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -315,15 +367,17 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              disabled={creating}
+              className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50"
             >
-              Cancel
+              İptal
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+              disabled={creating}
+              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
             >
-              Create
+              {creating ? 'Oluşturuluyor...' : 'Oluştur'}
             </button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Cpu, HardDrive, Database, Activity, AlertCircle, FileCode, ExternalLink, Folder } from 'lucide-react';
+import { ArrowLeft, Cpu, HardDrive, Database, Activity, AlertCircle, FileCode, ExternalLink, Folder, RefreshCw } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { projectsAPI, monitoringAPI, databaseAPI, filesAPI } from '../services/api';
+import { projectsAPI, monitoringAPI, databaseAPI, filesAPI, serverAPI } from '../services/api';
 import { useWebSocket } from '../services/websocket';
 import Card from '../components/Card';
 
@@ -35,11 +35,16 @@ const ProjectDetail = () => {
   const [slowQueries, setSlowQueries] = useState([]);
   const [errors, setErrors] = useState([]);
   const [phpFiles, setPhpFiles] = useState([]);
+  const [serverStatus, setServerStatus] = useState(null);
+  const [networkIPs, setNetworkIPs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { lastMessage } = useWebSocket();
 
   useEffect(() => {
     loadProjectData();
+    loadServerStatus();
+    loadNetworkIPs();
   }, [id]);
 
   useEffect(() => {
@@ -80,10 +85,100 @@ const ProjectDetail = () => {
     }
   };
 
+  const loadServerStatus = async () => {
+    try {
+      const response = await serverAPI.getStatus(id);
+      setServerStatus(response.data);
+    } catch (error) {
+      console.error('Error loading server status:', error);
+    }
+  };
+
+  const loadNetworkIPs = async () => {
+    try {
+      const response = await serverAPI.getNetworkIP();
+      setNetworkIPs(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading network IPs:', error);
+    }
+  };
+
+  const startServer = async () => {
+    try {
+      const response = await serverAPI.start(id);
+      setServerStatus(response.data);
+      alert(`Server started on ${response.data.url}`);
+      await loadServerStatus();
+    } catch (error) {
+      console.error('Error starting server:', error);
+      alert('Failed to start server. Make sure PHP is installed.');
+    }
+  };
+
+  const stopServer = async () => {
+    try {
+      await serverAPI.stop(id);
+      await loadServerStatus();
+      alert('Server stopped');
+    } catch (error) {
+      console.error('Error stopping server:', error);
+      alert('Failed to stop server');
+    }
+  };
+
   const openPhpFile = (file) => {
-    const domain = project.domain || 'localhost';
-    const url = `http://${domain}/${file.path.replace(/\\/g, '/')}`;
-    window.open(url, '_blank');
+    if (serverStatus?.running) {
+      // Dosya yolunu temizle ve URL'e çevir
+      let filePath = file.path.replace(/\\/g, '/');
+      // Başındaki ./ veya / varsa temizle
+      filePath = filePath.replace(/^\.?\//, '');
+      const url = `${serverStatus.url}/${filePath}`;
+      window.open(url, '_blank');
+    } else {
+      alert('Lütfen önce "Start Local Server" butonuna tıklayarak sunucuyu başlatın!');
+    }
+  };
+
+  const refreshProjectFiles = async () => {
+    // Kaynak yolu localStorage'dan al
+    const sourcePath = localStorage.getItem(`project_source_${id}`);
+    
+    if (!sourcePath) {
+      const newSourcePath = prompt('Kaynak dosyaların konumunu girin:');
+      if (!newSourcePath) return;
+      
+      localStorage.setItem(`project_source_${id}`, newSourcePath);
+      await performRefresh(newSourcePath);
+    } else {
+      // Onay iste
+      if (confirm(`Proje dosyaları şu konumdan yeniden kopyalanacak:\n${sourcePath}\n\nDevam edilsin mi?`)) {
+        await performRefresh(sourcePath);
+      }
+    }
+  };
+
+  const performRefresh = async (sourcePath) => {
+    setRefreshing(true);
+    try {
+      const response = await projectsAPI.refresh(id, sourcePath);
+      alert(response.data.message || 'Dosyalar başarıyla yenilendi!');
+      
+      // Sunucu çalışıyorsa yeniden başlat
+      if (serverStatus?.running) {
+        await stopServer();
+        setTimeout(async () => {
+          await startServer();
+        }, 1000);
+      }
+      
+      // Verileri yeniden yükle
+      await loadProjectData();
+    } catch (error) {
+      console.error('Error refreshing project:', error);
+      alert(error.response?.data?.error || 'Dosyalar yenilenemedi');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   if (loading) {
@@ -167,15 +262,53 @@ const ProjectDetail = () => {
             <p className="text-gray-600 mt-1">{project.domain}</p>
           </div>
         </div>
-        <span
-          className={`px-3 py-1 text-sm font-medium rounded ${
-            project.status === 'running'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-700'
-          }`}
-        >
-          {project.status}
-        </span>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={refreshProjectFiles}
+            disabled={refreshing}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
+            title="Dosyaları kaynak konumdan yeniden kopyala"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Yenileniyor...' : 'Dosyaları Yenile'}
+          </button>
+          {serverStatus?.running ? (
+            <>
+              <div className="text-right mr-2">
+                <p className="text-sm font-medium text-green-700">Server Running</p>
+                <p className="text-xs text-gray-500">{serverStatus.url}</p>
+                {networkIPs.length > 0 && (
+                  <p className="text-xs text-blue-600">
+                    Network: http://{networkIPs[0].address}:{serverStatus.port}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={stopServer}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Stop Server
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={startServer}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              Start Local Server
+            </button>
+          )}
+          <span
+            className={`px-3 py-1 text-sm font-medium rounded ${
+              project.status === 'running'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
+            {project.status}
+          </span>
+        </div>
       </div>
 
       {/* Resource Stats */}
@@ -306,6 +439,19 @@ const ProjectDetail = () => {
           </div>
         }
       >
+        {!serverStatus?.running && phpFiles.length > 0 && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-900">Local server not running</p>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Click "Start Local Server" button to run PHP files in browser
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {phpFiles.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <FileCode className="h-12 w-12 mx-auto mb-3 text-gray-400" />

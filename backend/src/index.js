@@ -12,6 +12,7 @@ import monitoringRoutes from './api/routes/monitoring.js';
 import databaseRoutes from './api/routes/database.js';
 import systemRoutes from './api/routes/system.js';
 import filesRoutes from './api/routes/files.js';
+import serverRoutes from './api/routes/server.js';
 
 // Import services
 import { initializeDatabase } from './database/init.js';
@@ -23,6 +24,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 const WS_PORT = process.env.WS_PORT || 3002;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Middleware
 app.use(helmet());
@@ -40,6 +42,12 @@ app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/files', filesRoutes);
+app.use('/api/server', serverRoutes);
+
+// Root redirect to frontend
+app.get('/', (req, res) => {
+  res.redirect(FRONTEND_URL);
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

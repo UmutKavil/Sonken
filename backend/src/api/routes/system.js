@@ -109,4 +109,77 @@ router.get('/network', async (req, res) => {
   }
 });
 
+// Select folder dialog (uses native OS file picker via child_process)
+router.post('/select-folder', async (req, res) => {
+  try {
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
+
+    // Windows için PowerShell kullanarak klasör seçici açıyoruz
+    if (os.platform() === 'win32') {
+      try {
+        // PowerShell scriptini dosyaya yaz ve çalıştır
+        const fs = await import('fs');
+        const path = await import('path');
+        const tempDir = os.tmpdir();
+        const scriptPath = path.join(tempDir, 'select-folder.ps1');
+        
+        const psScript = `
+Add-Type -AssemblyName System.Windows.Forms
+$folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+$folderBrowser.Description = 'Proje klasörünü seçin'
+$folderBrowser.RootFolder = 'MyComputer'
+$result = $folderBrowser.ShowDialog()
+if ($result -eq 'OK') {
+    Write-Output $folderBrowser.SelectedPath
+}
+`;
+        
+        fs.writeFileSync(scriptPath, psScript, 'utf8');
+        
+        const { stdout } = await execAsync(
+          `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`,
+          { encoding: 'utf8', timeout: 60000 }
+        );
+
+        const selectedPath = stdout.trim();
+        
+        // Temp dosyayı sil
+        try { fs.unlinkSync(scriptPath); } catch(e) {}
+        
+        if (selectedPath && selectedPath.length > 0) {
+          res.json({
+            success: true,
+            path: selectedPath
+          });
+        } else {
+          res.json({
+            success: false,
+            canceled: true,
+            message: 'Klasör seçimi iptal edildi'
+          });
+        }
+      } catch (psError) {
+        console.error('PowerShell error:', psError);
+        res.json({
+          success: false,
+          error: 'Klasör seçici açılamadı: ' + psError.message
+        });
+      }
+    } else {
+      res.json({
+        success: false,
+        error: 'Platform not supported yet. Please enter path manually.'
+      });
+    }
+  } catch (error) {
+    console.error('Error selecting folder:', error);
+    res.json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 export default router;
