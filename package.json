@@ -30,6 +30,6 @@
     "url": "https://github.com/UmutKavil/Sonken.git"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^9.2.1"
   }
 }

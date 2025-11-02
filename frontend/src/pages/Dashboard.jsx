@@ -38,7 +38,7 @@ const Dashboard = () => {
 
   const deleteProject = async (id) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
-    
+
     try {
       await projectsAPI.delete(id);
       await loadProjects();
@@ -51,7 +51,7 @@ const Dashboard = () => {
     try {
       // Server durumunu kontrol et
       const statusRes = await serverAPI.getStatus(project.id);
-      
+
       if (statusRes.data.running) {
         // Server çalışıyorsa direkt aç
         window.open(statusRes.data.url, '_blank');
@@ -137,11 +137,10 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-500">{project.domain}</p>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${
-                      project.status === 'running'
+                    className={`px-2 py-1 text-xs font-medium rounded ${project.status === 'running'
                         ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-700'
-                    }`}
+                      }`}
                   >
                     {project.status}
                   </span>
@@ -218,11 +217,11 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
 
   const handleNameChange = (e) => {
     const name = e.target.value;
-    setFormData({ 
-      ...formData, 
+    setFormData({
+      ...formData,
       name: name,
-      domain: formData.domain === '' || formData.domain === generateDomain(formData.name) 
-        ? generateDomain(name) 
+      domain: formData.domain === '' || formData.domain === generateDomain(formData.name)
+        ? generateDomain(name)
         : formData.domain
     });
   };
@@ -231,20 +230,10 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
     setSelectingFolder(true);
     try {
       const response = await systemAPI.selectFolder();
-      console.log('Select folder response:', response.data);
-      
       if (response.data.success && response.data.path) {
-        console.log('Setting path:', response.data.path);
-        setFormData(prev => ({ ...prev, path: response.data.path }));
-      } else if (response.data.canceled) {
-        // Kullanıcı iptal etti, sessizce geç
-        console.log('Klasör seçimi iptal edildi');
+        setFormData({ ...formData, path: response.data.path });
       } else if (response.data.error) {
-        console.error('Folder selection error:', response.data.error);
         alert('Klasör seçilemedi: ' + response.data.error);
-      } else {
-        console.warn('Unexpected response:', response.data);
-        alert('Beklenmeyen yanıt alındı');
       }
     } catch (error) {
       console.error('Error selecting folder:', error);
@@ -265,12 +254,12 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
       };
       const response = await projectsAPI.create(submitData);
       const createdProject = response.data.data;
-      
+
       // Kaynak yolu localStorage'a kaydet (yenileme için)
       localStorage.setItem(`project_source_${createdProject.id}`, formData.path);
-      
+
       alert(response.data.message || 'Proje başarıyla oluşturuldu ve dosyalar kopyalandı!');
-      
+
       // Proje oluşturulduktan sonra detay sayfasına yönlendir
       window.location.href = `/project/${createdProject.id}`;
     } catch (error) {
@@ -320,29 +309,18 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proje Konumu
+              Proje Klasör Yolu
             </label>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                required
-                value={formData.path}
-                onChange={(e) => setFormData({ ...formData, path: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="C:\projects\myproject"
-              />
-              <button
-                type="button"
-                onClick={handleSelectFolder}
-                disabled={selectingFolder}
-                className="px-4 py-2 bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center whitespace-nowrap"
-              >
-                <FolderOpen className="h-4 w-4 mr-2" />
-                {selectingFolder ? 'Seçiliyor...' : 'Gözat'}
-              </button>
-            </div>
+            <input
+              type="text"
+              required
+              value={formData.path}
+              onChange={(e) => setFormData({ ...formData, path: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="C:\xampp\htdocs\myproject"
+            />
             <p className="text-xs text-gray-500 mt-1">
-              Gözat düğmesi ile bilgisayarınızdaki klasörü seçin veya yolu manuel yazın
+              📁 Örnek: C:\xampp\htdocs\myproject veya C:\Users\YourName\Desktop\project
             </p>
           </div>
           <div>

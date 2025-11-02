@@ -1,60 +1,55 @@
+#!/usr/bin/env node
+import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'src', 'database', 'sonken.db');
 
-async function run() {
-  try {
-    if (!fs.existsSync(DB_PATH)) {
-      console.error('DB not found at', DB_PATH);
-      process.exit(1);
+const dbPath = path.join(__dirname, '..', 'src', 'database', 'sonken.db');
+
+console.log('🧹 Tüm projeleri temizleniyor...\n');
+
+try {
+    // Backup oluştur
+    if (fs.existsSync(dbPath)) {
+        const backupPath = `${dbPath}.${Date.now()}.bak`;
+        fs.copyFileSync(dbPath, backupPath);
+        console.log(`Backup created at ${backupPath}`);
     }
 
-    // Backup
-    const bakPath = DB_PATH + '.' + Date.now() + '.bak';
-    fs.copyFileSync(DB_PATH, bakPath);
-    console.log('Backup created at', bakPath);
+    const db = new Database(dbPath);
 
-    const db = new sqlite3.Database(DB_PATH);
+    // Önce kaç proje var göster
+    const countBefore = db.prepare('SELECT COUNT(*) as count FROM projects').get();
+    console.log(`Projects before: ${countBefore.count}`);
 
-    db.serialize(() => {
-      db.run('PRAGMA foreign_keys = ON');
+    // Tüm projeleri sil
+    db.prepare('DELETE FROM projects').run();
+    db.prepare('DELETE FROM resource_metrics').run();
+    db.prepare('DELETE FROM database_metrics').run();
+    db.prepare('DELETE FROM slow_queries').run();
+    db.prepare('DELETE FROM http_requests').run();
+    db.prepare('DELETE FROM error_logs').run();
 
-      db.get('SELECT COUNT(*) as c FROM projects', (err, row) => {
-        if (err) {
-          console.error('Error counting projects:', err.message);
-        } else {
-          console.log('Projects before:', row.c);
-        }
-      });
+    console.log('Deleted projects rows');
 
-      db.run('DELETE FROM projects', function(err) {
-        if (err) {
-          console.error('Error deleting projects:', err.message);
-        } else {
-          console.log('Deleted projects rows');
-        }
-      });
-
-      db.get('SELECT COUNT(*) as c FROM projects', (err, row) => {
-        if (err) {
-          console.error('Error counting projects after delete:', err.message);
-        } else {
-          console.log('Projects after:', row.c);
-        }
-      });
-
-    });
+    // Sonucu göster
+    const countAfter = db.prepare('SELECT COUNT(*) as count FROM projects').get();
+    console.log(`Projects after: ${countAfter.count}`);
 
     db.close();
-  } catch (error) {
-    console.error('Error in script:', error);
-    process.exit(1);
-  }
-}
 
-run();
+    // sonken-projects klasörünü temizle
+    const projectsDir = path.join(__dirname, '..', '..', 'sonken-projects');
+    if (fs.existsSync(projectsDir)) {
+        fs.rmSync(projectsDir, { recursive: true, force: true });
+        console.log('\n✅ sonken-projects klasörü temizlendi');
+    }
+
+    console.log('\n✅ Tüm projeler başarıyla temizlendi!');
+} catch (error) {
+    console.error('❌ Hata:', error.message);
+    process.exit(1);
+}

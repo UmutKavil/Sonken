@@ -9,9 +9,6 @@
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit"
     },
-    "css.validate": false,
-    "scss.validate": false,
-    "less.validate": false,
     "files.exclude": {
       "**/node_modules": true,
       "**/.git": true,

@@ -22,29 +22,29 @@ export const projectsAPI = {
 
 // Monitoring API
 export const monitoringAPI = {
-  getResources: (projectId, limit = 50) => 
+  getResources: (projectId, limit = 50) =>
     api.get(`/monitoring/resources/${projectId}?limit=${limit}`),
-  getLatestResources: (projectId) => 
+  getLatestResources: (projectId) =>
     api.get(`/monitoring/resources/${projectId}/latest`),
-  getRequests: (projectId, limit = 100) => 
+  getRequests: (projectId, limit = 100) =>
     api.get(`/monitoring/requests/${projectId}?limit=${limit}`),
-  getErrorStats: (projectId) => 
+  getErrorStats: (projectId) =>
     api.get(`/monitoring/errors/${projectId}/stats`),
-  getErrors: (projectId, limit = 50) => 
+  getErrors: (projectId, limit = 50) =>
     api.get(`/monitoring/errors/${projectId}?limit=${limit}`),
-  getThroughput: (projectId, interval = '1 hour') => 
+  getThroughput: (projectId, interval = '1 hour') =>
     api.get(`/monitoring/throughput/${projectId}?interval=${interval}`),
 };
 
 // Database API
 export const databaseAPI = {
-  getMetrics: (projectId, limit = 50) => 
+  getMetrics: (projectId, limit = 50) =>
     api.get(`/database/metrics/${projectId}?limit=${limit}`),
-  getLatestMetrics: (projectId) => 
+  getLatestMetrics: (projectId) =>
     api.get(`/database/metrics/${projectId}/latest`),
-  getSlowQueries: (projectId, limit = 20) => 
+  getSlowQueries: (projectId, limit = 20) =>
     api.get(`/database/slow-queries/${projectId}?limit=${limit}`),
-  getSlowQueryStats: (projectId) => 
+  getSlowQueryStats: (projectId) =>
     api.get(`/database/slow-queries/${projectId}/stats`),
 };
 
@@ -59,7 +59,7 @@ export const systemAPI = {
 // Files API
 export const filesAPI = {
   getPhpFiles: (projectId) => api.get(`/files/php-files/${projectId}`),
-  getFileContent: (projectId, filePath) => 
+  getFileContent: (projectId, filePath) =>
     api.get(`/files/file-content/${projectId}?filePath=${encodeURIComponent(filePath)}`),
 };
 

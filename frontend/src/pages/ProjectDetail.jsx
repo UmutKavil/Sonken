@@ -142,11 +142,11 @@ const ProjectDetail = () => {
   const refreshProjectFiles = async () => {
     // Kaynak yolu localStorage'dan al
     const sourcePath = localStorage.getItem(`project_source_${id}`);
-    
+
     if (!sourcePath) {
       const newSourcePath = prompt('Kaynak dosyaların konumunu girin:');
       if (!newSourcePath) return;
-      
+
       localStorage.setItem(`project_source_${id}`, newSourcePath);
       await performRefresh(newSourcePath);
     } else {
@@ -162,7 +162,7 @@ const ProjectDetail = () => {
     try {
       const response = await projectsAPI.refresh(id, sourcePath);
       alert(response.data.message || 'Dosyalar başarıyla yenilendi!');
-      
+
       // Sunucu çalışıyorsa yeniden başlat
       if (serverStatus?.running) {
         await stopServer();
@@ -170,7 +170,7 @@ const ProjectDetail = () => {
           await startServer();
         }, 1000);
       }
-      
+
       // Verileri yeniden yükle
       await loadProjectData();
     } catch (error) {
@@ -300,11 +300,10 @@ const ProjectDetail = () => {
             </button>
           )}
           <span
-            className={`px-3 py-1 text-sm font-medium rounded ${
-              project.status === 'running'
+            className={`px-3 py-1 text-sm font-medium rounded ${project.status === 'running'
                 ? 'bg-green-100 text-green-700'
                 : 'bg-gray-100 text-gray-700'
-            }`}
+              }`}
           >
             {project.status}
           </span>
@@ -429,8 +428,8 @@ const ProjectDetail = () => {
       )}
 
       {/* PHP Files */}
-      <Card 
-        title="PHP Files" 
+      <Card
+        title="PHP Files"
         subtitle={`${phpFiles.length} files found`}
         action={
           <div className="flex items-center text-sm text-gray-500">
