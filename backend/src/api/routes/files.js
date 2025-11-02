@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { dbGet } from '../../database/init.js';
+import { joinPaths, normalizePath } from '../../utils/platform.js';
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router.get('/php-files/:projectId', async (req, res) => {
         const items = fs.readdirSync(dir);
         
         for (const item of items) {
-          const fullPath = path.join(dir, item);
+          const fullPath = joinPaths(dir, item);
           const stat = fs.statSync(fullPath);
           
           if (stat.isDirectory()) {
@@ -38,11 +39,11 @@ router.get('/php-files/:projectId', async (req, res) => {
               phpFiles = phpFiles.concat(findPhpFiles(fullPath, baseDir));
             }
           } else if (item.endsWith('.php')) {
-            const relativePath = path.relative(baseDir, fullPath);
+            const relativePath = normalizePath(path.relative(baseDir, fullPath));
             phpFiles.push({
               name: item,
               path: relativePath,
-              fullPath: fullPath,
+              fullPath: normalizePath(fullPath),
               size: stat.size,
               modified: stat.mtime
             });
@@ -86,10 +87,11 @@ router.get('/file-content/:projectId', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Project not found' });
     }
 
-    const fullPath = path.join(project.path, filePath);
+    const fullPath = normalizePath(joinPaths(project.path, filePath));
+    const normalizedProjectPath = normalizePath(project.path);
     
     // Security check: make sure file is within project directory
-    if (!fullPath.startsWith(project.path)) {
+    if (!fullPath.startsWith(normalizedProjectPath)) {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 

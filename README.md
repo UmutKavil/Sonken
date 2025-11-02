@@ -2,11 +2,20 @@
 
 **Next-Generation Local Development Server + APM Dashboard**
 
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)]()
+[![Node](https://img.shields.io/badge/Node.js-v18%2B-green)]()
+[![License](https://img.shields.io/badge/License-MIT-yellow)]()
+
 ## 🚀 Vision
 
 Sonken is a modern, all-in-one local development server and Application Performance Monitoring (APM) dashboard designed specifically for developers who want more than just a server stack.
 
 Unlike traditional solutions (XAMPP, MAMP), Sonken provides **integrated, real-time performance analytics for every project** running in your local environment.
+
+### 🌍 Cross-Platform Support
+- ✅ **Windows 10/11**
+- ✅ **macOS** (Intel & Apple Silicon)
+- ✅ **Linux** (Ubuntu, Debian, Fedora, etc.)
 
 ## ✨ Key Features
 
@@ -64,22 +73,44 @@ Sonken/
 
 ## 📦 Installation
 
+### Quick Start
+
+**Windows:**
+```batch
+# Clone the repository
+git clone https://github.com/UmutKavil/Sonken.git
+cd Sonken
+
+# Run installer
+install.bat
+
+# Start Sonken
+start.bat
+```
+
+**macOS / Linux:**
 ```bash
 # Clone the repository
 git clone https://github.com/UmutKavil/Sonken.git
 cd Sonken
 
-# Install backend dependencies
-cd backend
-npm install
+# Make scripts executable
+chmod +x install.sh start.sh
 
-# Install frontend dependencies
-cd ../frontend
-npm install
+# Run installer
+./install.sh
 
 # Start Sonken
+./start.sh
+```
+
+**Using npm (All Platforms):**
+```bash
+npm run setup
 npm run dev
 ```
+
+For detailed installation instructions and troubleshooting, see [CROSS_PLATFORM_GUIDE.md](./CROSS_PLATFORM_GUIDE.md)
 
 ## 🚦 Getting Started
 

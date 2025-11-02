@@ -3,17 +3,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { dbRun, dbGet, dbAll } from '../../database/init.js';
 import fs from 'fs';
 import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
+import { copyDirectory, normalizePath, joinPaths } from '../../utils/platform.js';
 
 const router = express.Router();
-const execAsync = promisify(exec);
 
 // Dosyaları kopyala
 async function copyProjectFiles(sourcePath, projectId, projectName) {
   try {
     // Sonken projeleri için klasör oluştur
-    const sonkenProjectsDir = path.join(process.cwd(), '..', 'sonken-projects');
+    const sonkenProjectsDir = joinPaths(process.cwd(), '..', 'sonken-projects');
     
     // Ana klasör yoksa oluştur
     if (!fs.existsSync(sonkenProjectsDir)) {
@@ -26,7 +24,7 @@ async function copyProjectFiles(sourcePath, projectId, projectName) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
     
-    const destinationPath = path.join(sonkenProjectsDir, `${safeFolderName}-${projectId.substring(0, 8)}`);
+    const destinationPath = joinPaths(sonkenProjectsDir, `${safeFolderName}-${projectId.substring(0, 8)}`);
     
     // Hedef klasör varsa sil
     if (fs.existsSync(destinationPath)) {
@@ -36,29 +34,8 @@ async function copyProjectFiles(sourcePath, projectId, projectName) {
     // Yeni klasör oluştur
     fs.mkdirSync(destinationPath, { recursive: true });
     
-    // Windows'ta robocopy kullan (daha hızlı ve güvenilir)
-    if (process.platform === 'win32') {
-      const command = `robocopy "${sourcePath}" "${destinationPath}" /E /NFL /NDL /NJH /NJS /nc /ns /np`;
-      try {
-        const { stdout, stderr } = await execAsync(command);
-        console.log('Robocopy completed:', stdout);
-      } catch (error) {
-        // Robocopy exit codes: 0-7 başarılı (ama exception oluşturur), 8+ gerçek hata
-        // Exit code 1 = Dosyalar kopyalandı (başarılı)
-        // Exit code 2 = Ekstra dosyalar var (başarılı)
-        // Exit code 3 = Dosyalar kopyalandı ve ekstra dosyalar var (başarılı)
-        const exitCode = error.code || 0;
-        if (exitCode >= 8) {
-          console.error('Robocopy failed with code:', exitCode);
-          throw new Error(`Failed to copy files: ${error.message}`);
-        }
-        // Exit code 1-7 başarılı kabul edilir
-        console.log('Robocopy completed with code:', exitCode);
-      }
-    } else {
-      // Unix/Linux için cp kullan
-      await execAsync(`cp -R "${sourcePath}/." "${destinationPath}"`);
-    }
+    // Cross-platform dosya kopyalama (Windows: robocopy, Unix: cp)
+    await copyDirectory(normalizePath(sourcePath), normalizePath(destinationPath));
     
     return destinationPath;
   } catch (error) {

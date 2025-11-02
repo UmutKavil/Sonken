@@ -231,10 +231,20 @@ const CreateProjectModal = ({ onClose, onCreated }) => {
     setSelectingFolder(true);
     try {
       const response = await systemAPI.selectFolder();
+      console.log('Select folder response:', response.data);
+      
       if (response.data.success && response.data.path) {
-        setFormData({ ...formData, path: response.data.path });
+        console.log('Setting path:', response.data.path);
+        setFormData(prev => ({ ...prev, path: response.data.path }));
+      } else if (response.data.canceled) {
+        // Kullanıcı iptal etti, sessizce geç
+        console.log('Klasör seçimi iptal edildi');
       } else if (response.data.error) {
+        console.error('Folder selection error:', response.data.error);
         alert('Klasör seçilemedi: ' + response.data.error);
+      } else {
+        console.warn('Unexpected response:', response.data);
+        alert('Beklenmeyen yanıt alındı');
       }
     } catch (error) {
       console.error('Error selecting folder:', error);

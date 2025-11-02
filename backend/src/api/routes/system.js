@@ -167,10 +167,101 @@ if ($result -eq 'OK') {
           error: 'Klasör seçici açılamadı: ' + psError.message
         });
       }
+    } else if (os.platform() === 'darwin') {
+      // macOS için AppleScript kullanarak Finder dialog açıyoruz
+      try {
+        const appleScriptCommand = `osascript -e 'return POSIX path of (choose folder with prompt "Proje klasörünü seçin")'`;
+        
+        console.log('Executing AppleScript:', appleScriptCommand);
+        
+        const { stdout, stderr } = await execAsync(appleScriptCommand, {
+          encoding: 'utf8',
+          timeout: 60000
+        });
+
+        console.log('AppleScript stdout:', stdout);
+        console.log('AppleScript stderr:', stderr);
+
+        const selectedPath = stdout.trim();
+        
+        if (selectedPath && selectedPath.length > 0 && !selectedPath.includes('execution error')) {
+          console.log('Selected path:', selectedPath);
+          res.json({
+            success: true,
+            path: selectedPath
+          });
+        } else {
+          console.log('No path selected or error');
+          res.json({
+            success: false,
+            canceled: true,
+            message: 'Klasör seçimi iptal edildi'
+          });
+        }
+      } catch (macError) {
+        console.error('AppleScript error details:', {
+          message: macError.message,
+          code: macError.code,
+          stderr: macError.stderr,
+          stdout: macError.stdout
+        });
+        
+        // User cancelled the dialog (exit code 1 or -128)
+        if (macError.code === 1 || macError.code === 128) {
+          res.json({
+            success: false,
+            canceled: true,
+            message: 'Klasör seçimi iptal edildi'
+          });
+        } else {
+          res.json({
+            success: false,
+            error: 'Klasör seçici açılamadı. Lütfen yolu manuel olarak girin.'
+          });
+        }
+      }
+    } else if (os.platform() === 'linux') {
+      // Linux için zenity kullanıyoruz (çoğu Linux dağıtımında yüklü)
+      try {
+        const { stdout } = await execAsync(
+          'zenity --file-selection --directory --title="Proje klasörünü seçin"',
+          { encoding: 'utf8', timeout: 60000 }
+        );
+
+        const selectedPath = stdout.trim();
+        
+        if (selectedPath && selectedPath.length > 0) {
+          res.json({
+            success: true,
+            path: selectedPath
+          });
+        } else {
+          res.json({
+            success: false,
+            canceled: true,
+            message: 'Klasör seçimi iptal edildi'
+          });
+        }
+      } catch (linuxError) {
+        // User cancelled or zenity not installed
+        if (linuxError.code === 1) {
+          res.json({
+            success: false,
+            canceled: true,
+            message: 'Klasör seçimi iptal edildi'
+          });
+        } else {
+          console.error('Zenity error:', linuxError);
+          res.json({
+            success: false,
+            error: 'Klasör seçici açılamadı. Zenity yüklü değil olabilir. Lütfen yolu manuel olarak girin.'
+          });
+        }
+      }
     } else {
       res.json({
         success: false,
-        error: 'Platform not supported yet. Please enter path manually.'
+        error: 'Bu platform için klasör seçici desteklenmiyor. Lütfen yolu manuel olarak girin.'
       });
     }
   } catch (error) {

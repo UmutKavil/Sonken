@@ -11,7 +11,9 @@
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "start": "cd backend && npm start",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "setup": "node -e \"console.log('Installing dependencies...'); require('child_process').execSync('npm install', {stdio: 'inherit'}); require('child_process').execSync('cd backend && npm install', {stdio: 'inherit', shell: true}); require('child_process').execSync('cd frontend && npm install', {stdio: 'inherit', shell: true});\"",
+    "clean": "node -e \"const fs = require('fs'); const path = require('path'); ['node_modules', 'backend/node_modules', 'frontend/node_modules'].forEach(dir => { if (fs.existsSync(dir)) { console.log('Removing ' + dir); fs.rmSync(dir, {recursive: true, force: true}); }});\""
   },
   "keywords": [
     "development-server",
